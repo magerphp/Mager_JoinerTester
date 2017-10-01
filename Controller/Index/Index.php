@@ -54,11 +54,14 @@ class Index extends \Magento\Framework\App\Action\Action
         /**
          * @var \Mager\Joiner\Model\Joiner $joiner
          */
-        $joiner = $this->joinerFactory->create($productCollection);
+//        $joiner = $this->joinerFactory->create($productCollection);
+        
+        $joiner = $this->joinerFactory->create();
+        $joiner->startWith($productCollection);
         
         $joiner->joinTablename('mager_joinertester_product');
-        $joiner->joinOn(['row_id' => 'product_id']);
-        $joiner->joinSelectFields('needs_sync');
+        $joiner->joinOn('product_id = entity_id');
+        $joiner->joinSelectFields(['needs_sync']);
         $joiner->call();
         
         $this->renderJoinResults($productCollection);
