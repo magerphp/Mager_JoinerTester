@@ -1,0 +1,16 @@
+{
+  "name": "mager/module-joiner-tester",
+  "description": "Tester for Mager_Joiner",
+  "require": {
+    "php": "^7.0"
+  },
+  "type": "magento2-module",
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Mager\\JoinerTester\\": ""
+    }
+  }
+}
