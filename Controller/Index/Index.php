@@ -60,7 +60,7 @@ class Index extends \Magento\Framework\App\Action\Action
             $joiner->setJoinTablename('mager_joinertester_product');
             $joiner->setJoinOn('product_id = entity_id');
             $joiner->setJoinSelectFields(['needs_sync']);
-            $joiner->commit();
+            $joiner->join();
             $this->renderJoinResults($productCollection);
         } catch (JoinerParamAlreadySetException $jpase) {
             echo "<b>ya done messed up by attempting to reset the " . $jpase->getMessage() . "</b>";
