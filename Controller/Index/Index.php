@@ -1,16 +1,16 @@
 <?php
-/**
- * Copyright © 2016 Magento. All rights reserved.
- * See COPYING.txt for license details.
- */
+
 namespace Mager\JoinerTester\Controller\Index;
+
+use Exception;
+use Mager\Joiner\Exception\JoinerParamAlreadySetException;
 
 class Index extends \Magento\Framework\App\Action\Action
 {
     /**
-     * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $collectionFactory
+     * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      */
-    protected $collectionFactory;
+    protected $productCollectionFactory;
 
     /**
      * @var \Mager\Joiner\Model\JoinerFactory $joinerFactory
@@ -22,17 +22,17 @@ class Index extends \Magento\Framework\App\Action\Action
      * Index constructor.
      * 
      * @param \Magento\Framework\App\Action\Context $context
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $collectionFactory
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \Mager\Joiner\Model\JoinerFactory $joinerFactory
      */
     public function __construct
     (
         \Magento\Framework\App\Action\Context $context,
-        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $collectionFactory,
+        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         \Mager\Joiner\Model\JoinerFactory $joinerFactory
     )
     {
-        $this->collectionFactory = $collectionFactory;
+        $this->productCollectionFactory = $productCollectionFactory;
         $this->joinerFactory = $joinerFactory;
         parent::__construct($context);
     }
@@ -49,22 +49,30 @@ class Index extends \Magento\Framework\App\Action\Action
         /**
          * @var \Magento\Catalog\Model\ResourceModel\Product\Collection $productCollection
          */
-        $productCollection = $this->collectionFactory->create();
-
-        /**
-         * @var \Mager\Joiner\Model\Joiner $joiner
-         */
-        $joiner = $this->joinerFactory->create($productCollection);
+        $productCollection = $this->productCollectionFactory->create();
         
-//        $joiner = $this->joinerFactory->create();
-//        $joiner->startWith($productCollection);
+        try {
+            /**
+             * @var \Mager\Joiner\Model\Joiner $joiner
+             */
+            $joiner = $this->joinerFactory->create();
+            $joiner->setCollection($productCollection);
+            $joiner->setJoinTablename('mager_joinertester_product');
+            $joiner->setJoinOn('product_id = entity_id');
+            $joiner->setJoinSelectFields(['needs_sync']);
+            $joiner->commit();
+            $this->renderJoinResults($productCollection);
+        } catch (JoinerParamAlreadySetException $jpase) {
+            echo "<b>ya done messed up by attempting to reset the " . $jpase->getMessage() . "</b>";
+        } catch (Exception $e) {
+            echo "<b>ya done messed up: " . $e->getMessage() . "</b>";
+        }
         
-        $joiner->joinTablename('mager_joinertester_product');
-        $joiner->joinOn('product_id = entity_id');
-        $joiner->joinSelectFields(['needs_sync']);
-        $joiner->call();
         
-        $this->renderJoinResults($productCollection);
+        // todo now test it with a non-eav collection!
+        
+        // todo find/make another table to join to (from a collection of mager_joinertester_product?)
+        
         
         echo '<p>finished joiner test.</p>';
     }
